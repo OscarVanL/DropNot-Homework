@@ -2,36 +2,39 @@ import os
 import time
 
 class DirectoryListener():
-    file_meta = None
-    folder_meta = None
+    file_meta = -1
+    folder_meta = -1
 
     def __init__(self, dir, change_callback):
         self.dir = dir
         self.change_callback = change_callback
 
-    def scan_directory(self):
-        while True:
+    def scan_directory(self, n_iter=-1):
+        while n_iter != 0:
             file_meta_new = {}
             folder_meta_new = set()
 
             for dir, subdirs, files in os.walk(self.dir):
                 folder_meta_new.add(dir)
                 for fname in files:
+                    print(fname)
                     fpath = os.path.join(dir, fname)
                     file_meta_new[fpath] = os.stat(fpath).st_mtime
 
-            if self.folder_meta:
+            if self.folder_meta != -1:
                 self.find_diff_folders(folder_meta_new)
             self.folder_meta = folder_meta_new
 
-            if self.file_meta:
+            if self.file_meta != -1:
                 self.find_diff_files(file_meta_new)
             self.file_meta = file_meta_new
 
-            time.sleep(10)
+            time.sleep(5)
+            n_iter -= 1
 
 
     def find_diff_folders(self, folders_after: set):
+        # Check for folder creation and removal
         removed = self.folder_meta - folders_after
         created = folders_after - self.folder_meta
         for folder in removed:
@@ -42,6 +45,7 @@ class DirectoryListener():
 
 
     def find_diff_files(self, files_after: dict):
+        # Check for file creation and removal
         removed = self.file_meta.keys() - files_after.keys()
         created = files_after.keys() - self.file_meta.keys()
         for file in removed:
@@ -50,6 +54,7 @@ class DirectoryListener():
         for file in created:
             self.change_callback(ChangeType.CreatedFile, file)
 
+        # Check for file modifications
         for file, modified in files_after.items():
             try:
                 if modified != self.file_meta[file]:
