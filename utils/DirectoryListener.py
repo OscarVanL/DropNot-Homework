@@ -25,12 +25,12 @@ class DirectoryListener:
                     # Create a dict of the last modified time for each file
                     file_meta_new[fpath] = os.stat(fpath).st_mtime
 
-            # Scan for folder changes (if this is not the first scan)
+            # Scan for folder changes (excluding first scan on start)
             if self.folder_meta != -1:
                 self.find_diff_folders(folder_meta_new)
             self.folder_meta = folder_meta_new
 
-            # Scan for file changes (if this is not the first scan)
+            # Scan for file changes (excluding first scan on start)
             if self.file_meta != -1:
                 self.find_diff_files(file_meta_new)
             self.file_meta = file_meta_new

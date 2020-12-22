@@ -2,9 +2,7 @@ from utils.DirectoryListener import DirectoryListener, ChangeType
 from utils.FileUtils import FileUtils
 from threading import Thread
 import requests
-import base64
 import os
-import json
 
 
 class DropNotClient(Thread):
