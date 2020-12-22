@@ -22,4 +22,4 @@
 
 ## Run Tests
 
-todo
+`python -m unittest discover tests`

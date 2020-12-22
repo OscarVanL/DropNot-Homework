@@ -70,6 +70,5 @@ class DirectoryListener:
                 pass
 
 
-
 class ChangeType(set):
     CreatedFile, DeletedFile, ModifiedFile, CreatedFolder, DeletedFolder = range(0, 5)
