@@ -1,7 +1,8 @@
 import os
 import time
 
-class DirectoryListener():
+
+class DirectoryListener:
     file_meta = -1
     folder_meta = -1
 
@@ -14,17 +15,22 @@ class DirectoryListener():
             file_meta_new = {}
             folder_meta_new = set()
 
+            # Walk the entire folder structure within the directory
             for dir, subdirs, files in os.walk(self.dir):
+                # Create a set of all folders
                 folder_meta_new.add(dir)
+
                 for fname in files:
-                    print(fname)
                     fpath = os.path.join(dir, fname)
+                    # Create a dict of the last modified time for each file
                     file_meta_new[fpath] = os.stat(fpath).st_mtime
 
+            # Scan for folder changes (if this is not the first scan)
             if self.folder_meta != -1:
                 self.find_diff_folders(folder_meta_new)
             self.folder_meta = folder_meta_new
 
+            # Scan for file changes (if this is not the first scan)
             if self.file_meta != -1:
                 self.find_diff_files(file_meta_new)
             self.file_meta = file_meta_new

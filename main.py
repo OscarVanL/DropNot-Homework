@@ -1,21 +1,32 @@
 import os
 import click
+from threading import Thread
 from client import Client
 from server import Server
+import time
 
 
 @click.command()
-@click.option('--client', '-c', is_flag=True, help="Launch in Client mode")
-@click.option('--server', '-s', is_flag=True, help="Launch in Server mode")
-@click.argument('sync_dir', required=True, type=click.Path(exists=True))
-def launch(client, server, sync_dir):
-    sync_dir = os.path.abspath(sync_dir)  # Convert relative paths to absolute path
+@click.option('--client', '-c', type=click.Path(exists=True), help="Launch in Client mode")
+@click.option('--server', '-s', type=click.Path(exists=True), help="Launch in Server mode")
+def launch(client, server):
+    client_dir = os.path.abspath(client)  # Convert relative paths to absolute path
+    server_dir = os.path.abspath(server)
+
     if client:
-        print("Starting Client, synchronising directory:", sync_dir)
-        Client.DropnotClient(sync_dir)
+        print("Starting Client, synchronising directory:", client_dir)
+        client = Client.DropnotClient(client_dir)
+        client.daemon = True
+        client.start()
+
     if server:
-        print("Starting Server, synchronising files to:", sync_dir)
-        Server.DropnotServer(sync_dir)
+        print("Starting Server, synchronising files to:", server_dir)
+        server = Thread(target=Server.start, args=server_dir)
+        server.daemon = True
+        server.start()
+
+    while True:
+        time.sleep(1)
 
 
 if __name__ == '__main__':

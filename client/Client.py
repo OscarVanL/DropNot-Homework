@@ -1,10 +1,15 @@
 from utils.DirectoryListener import DirectoryListener, ChangeType
 from threading import Thread
 
-class DropnotClient():
+
+class DropnotClient(Thread):
 
     def __init__(self, sync_dir):
-        dir_worker = DirectoryListener(dir=sync_dir, change_callback=self.on_change)
+        self.sync_dir = sync_dir
+        Thread.__init__(self)
+
+    def run(self):
+        dir_worker = DirectoryListener(dir=self.sync_dir, change_callback=self.on_change)
         Thread(name='dir_listener', target=DirectoryListener.scan_directory(dir_worker))
 
 

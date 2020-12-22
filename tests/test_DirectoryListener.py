@@ -4,7 +4,7 @@ import shutil
 import os
 from utils.DirectoryListener import DirectoryListener, ChangeType
 from unittest.mock import Mock
-import time
+
 
 class TestDirectoryListener(unittest.TestCase):
     def setUp(self):
