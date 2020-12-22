@@ -14,10 +14,10 @@ class FileUtils:
 
     @staticmethod
     def get_file_encoding(path, rel_path):
-
         md5_hash = hashlib.md5()
         with open(path, 'rb') as f:
-            md5_hash.update(f)
+            md5_hash.update(f.read())
+            f.seek(0)
             return FileMetadata(bin=f.read(),
                                 path=rel_path,
                                 modified=os.stat(path).st_mtime,
