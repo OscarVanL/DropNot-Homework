@@ -23,3 +23,17 @@
 ## Run Tests
 
 `python -m unittest discover tests`
+
+
+# Improvements
+
+* To detect changes, native OS libraries like the win32 API could be used. However, this adds complexity for multi-OS compatibility.
+
+* Not all file metadata is transferred, so it's not a 1:1 copy of a file.
+
+* Base64 is used for the file binary encoding, however using BSON or Google Protocol Buffers would result in efficiency gains.
+
+* I am using Flask in development mode, this isn't suitable for production.
+
+* There's **no encryption**.
+
