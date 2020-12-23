@@ -17,7 +17,6 @@ class DirectoryListener:
             folder_db.commit()
 
 
-
     def scan_directory(self, n_iter=-1):
         while n_iter != 0:
             file_meta_new = {}

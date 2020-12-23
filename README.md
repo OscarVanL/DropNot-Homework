@@ -1,5 +1,9 @@
 # Pexip DropNot Homework
 
+## About
+
+This solution completes tasks 1.1 and 1.2, and also completes bonus task 1.
+
 ## Setup
 
 1. `git clone https://github.com/OscarVanL/Pexip-Dropbox-Homework`
@@ -29,11 +33,15 @@
 
 * To detect changes, native OS libraries like the win32 API could be used. However, this adds complexity for multi-OS compatibility.
 
-* Not all file metadata is transferred, so it's not a 1:1 copy of a file.
+* My solution rebuilds only the 'modified' file metadata on the server. Not all metadata is transferred.
 
 * Base64 is used for the file binary encoding, however using BSON or Google Protocol Buffers would result in efficiency gains.
 
+* File transfers happen sequentially. A few simultaneous transfers could speed up synchronisation.
+
 * I am using Flask in development mode, this isn't suitable for production.
+
+* If a file or folder is renamed, the directory listener isn't smart enough to know this, so it will be processed as a 'deletion' followed by a 'creation'.
 
 * There's **no encryption**.
 

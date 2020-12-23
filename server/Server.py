@@ -3,12 +3,14 @@ from utils.ServerFileUtils import ServerFileUtils
 from sqlitedict import SqliteDict
 import json
 import os
+import hashlib
+import logging
 
 
 def initialise(sync_dir):
     # Todo: Upon start verify the hash_db is set correctly for each item within the meta_db?
-
     app = Flask(__name__)
+    #logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', filename='server.log', level=logging.INFO)
     # A Key-Value DB table storing MD5 -> Path. This allows us to detect the upload of identical files to save bandwidth
     hash_db = SqliteDict('server_tracker.db', tablename='hashmap', encode=json.dumps, decode=json.loads)
     # A Key-Value DB table storing Path -> Metadata. Metadata is stored as JSON
@@ -22,21 +24,34 @@ def initialise(sync_dir):
         :return: 200 if exist, 204 if it doesn't
         """
         try:
-            print("checking db for md5:", md5)
             existing_path = hash_db[md5]
-            # todo: Handle case where server has deleted or modified this file since originally synced?
-            # Or should I limit this in scope to assume the server's user does not touch the files?
-            return 'Already exists', 200
+
+            # Check stored MD5 hash is still up-to-date
+            md5_hash = hashlib.md5()
+            with open(existing_path, 'rb') as file:
+                md5_hash.update(file.read())
+
+            if md5 == md5_hash.hexdigest():
+                return 'Already exists', 200
+            else:
+                # If the DB's stored MD5 map does not match the file's actual MD5
+                # (This could happen if the file was modified server-side after it was originally synced)
+                hash_db.pop(md5, None)
+                hash_db[md5_hash.hexdigest()] = existing_path
+                hash_db.commit()
+                return 'Does not exist', 204
         except KeyError:
             # Give response 204 to say a copy of the file doesn't already exist
             return 'Does not exist', 204
+        except FileNotFoundError:
+            return 'Does not exist', 204
+
 
     @app.route('/sync/<path:path>', methods=['POST'])
     def new_item(path):
-        print("Syncing new item from client:", path)
         data = json.loads(request.get_json(silent=False))
 
-        target_path = os.path.join(sync_dir, path)
+        target_path = os.path.normpath(os.path.join(sync_dir, path))
         try:
             if data['type'] == 'file':
                 ServerFileUtils.set_file(hash_db, meta_db, target_path, data)
@@ -55,10 +70,9 @@ def initialise(sync_dir):
 
     @app.route('/sync/<path:path>', methods=['PUT'])
     def update_item(path):
-        print("Syncing updated file from client:", path)
         data = json.loads(request.get_json(silent=False))
 
-        target_path = os.path.join(sync_dir, path)
+        target_path = os.path.normpath(os.path.join(sync_dir, path))
         try:
             if data['type'] == 'file':
                 ServerFileUtils.set_file(hash_db, meta_db, target_path, data)
@@ -74,10 +88,9 @@ def initialise(sync_dir):
 
     @app.route('/sync/<path:path>', methods=['DELETE'])
     def delete_item(path):
-        print("Removing item:", path)
         data = request.get_json(silent=False, force=True)
 
-        target_path = os.path.join(sync_dir, path)
+        target_path = os.path.normpath(os.path.join(sync_dir, path))
         try:
             if data['type'] == 'file':
                 ServerFileUtils.remove_file(hash_db, meta_db, target_path)
@@ -87,7 +100,8 @@ def initialise(sync_dir):
                 return 'Invalid data type received', 400
         except IOError as e:
             print(e)
-            return e, 422
+            return str(e), 422
+
         return 'OK', 200
 
     return app

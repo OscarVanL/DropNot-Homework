@@ -52,7 +52,6 @@ class DropNotClient(Thread):
 
 
     def sync_new_folder(self, path, rel_path):
-        print("syncing new folder:", path)
         folder_encoding = FileUtils.get_folder_encoding(path, rel_path)
         resp = requests.post('http://{}:5000/sync/{}'.format(self.target, rel_path),
                              json=repr(folder_encoding))
@@ -110,7 +109,7 @@ class DropNotClient(Thread):
             logging.info('File creation synced to remote:{}'.format(rel_path))
             file_metadata.sync = True
             self.file_db[path] = repr(file_metadata)
-        elif resp.status_code == 400:
+        elif resp.status_code == 400 or resp.status_code == 422:
             logging.error('File creation sync unsuccessful:{}'.format(rel_path))
             self.file_db[path] = repr(file_metadata)
             # todo: handle this?

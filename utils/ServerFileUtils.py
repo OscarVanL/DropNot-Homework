@@ -16,13 +16,11 @@ class ServerFileUtils:
     @staticmethod
     def remove_folder(meta_db, target_path):
         try:
+            meta_db.pop(target_path, None)
+            meta_db.commit()
             shutil.rmtree(target_path)
-            meta_db.pop(target_path, None)
-            meta_db.commit()
         except FileNotFoundError:
-            # The folder might not be on the server
-            meta_db.pop(target_path, None)
-            meta_db.commit()
+            # The folder might not necessarily be on the server
             pass
 
 
@@ -51,30 +49,30 @@ class ServerFileUtils:
                               'is corrupt (MD5 before transmission and after transmission do not match)')
 
             hash_db[md5_hash.hexdigest()] = target_file  # Hash -> Path map
+            hash_db.commit()
             data_dict.pop('bin', None)  # Remove binary data, only save metadata to DB
             meta_db[target_file] = data_dict  # Path -> Metadata map
-            hash_db.commit()
             meta_db.commit()
         else:
-            # Create file by searching for file with matching MD5 hash
-            print("Inbound dictionary does not contain binary data, checking MD5 hash map")
+            # Create file by cloning another file with matching MD5 hash
             duplicate_file_path = hash_db[data_dict['md5']]
-            print("Matches file:", duplicate_file_path)
             # Copy the identical file into the new file, saving bandwidth :)
             shutil.copyfile(duplicate_file_path, target_file)
+            meta_db[target_file] = data_dict
+            meta_db.commit()
 
 
     @staticmethod
     def remove_file(hash_db, meta_db, target_path):
         try:
-            # Remove target file
-            os.remove(target_path)
             # Remove DB entries for removed file
-            md5 = json.loads(meta_db[target_path])['md5']
+            md5 = meta_db[target_path]['md5']
             hash_db.pop(md5, None)
             meta_db.pop(target_path, None)
             hash_db.commit()
             meta_db.commit()
+            # Remove target file
+            os.remove(target_path)
         except OSError:
-            # The file might not be on the server
+            # The file might not be on the server if a remove_folder request was completed earlier
             pass
