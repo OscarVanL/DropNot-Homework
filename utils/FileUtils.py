@@ -2,7 +2,7 @@ import os
 import hashlib
 import base64
 import shutil
-from utils.Metadata import FileMetadata, FolderMetadata
+from utils.Metadata import FileEncoding, FolderEncoding, FileMetadata
 
 
 class FileUtils:
@@ -50,6 +50,26 @@ class FileUtils:
             # The file might not be on the server
             pass
 
+    @staticmethod
+    def get_file_metadata(path: str, rel_path: str):
+        md5_hash = hashlib.md5()
+        with open(path, 'rb') as f:
+            md5_hash.update(f.read())
+            f.seek(0)
+            return FileMetadata(path=rel_path,
+                                modified=os.stat(path).st_mtime,
+                                md5=md5_hash.hexdigest(),
+                                size=os.stat(path).st_size,
+                                sync=False)
+
+    @staticmethod
+    def get_metadata(encoding: FileEncoding):
+        return FileMetadata(
+            path=encoding.path,
+            modified=encoding.modified,
+            md5=encoding.md5,
+            size=encoding.size,
+            sync=False)
 
     @staticmethod
     def get_file_encoding(path, rel_path):
@@ -57,7 +77,7 @@ class FileUtils:
         with open(path, 'rb') as f:
             md5_hash.update(f.read())
             f.seek(0)
-            return FileMetadata(bin=f.read(),
+            return FileEncoding(bin=f.read(),
                                 path=rel_path,
                                 modified=os.stat(path).st_mtime,
                                 md5=md5_hash.hexdigest(),
@@ -65,7 +85,8 @@ class FileUtils:
 
     @staticmethod
     def get_folder_encoding(path, rel_path):
-        return FolderMetadata(
+        return FolderEncoding(
             path=rel_path,
-            modified=os.stat(path).st_mtime
+            modified=os.stat(path).st_mtime,
+            sync=False
         )
