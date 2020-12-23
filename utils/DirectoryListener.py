@@ -2,6 +2,7 @@ import os
 import time
 import json
 
+
 class DirectoryListener:
 
     def __init__(self, dir, change_callback, file_db, folder_db):
@@ -9,6 +10,13 @@ class DirectoryListener:
         self.change_callback = change_callback
         self.file_db = file_db
         self.folder_db = folder_db
+        try:
+            folder_db[dir]
+        except KeyError:
+            folder_db[dir] = 'sync_dir'
+            folder_db.commit()
+
+
 
     def scan_directory(self, n_iter=-1):
         while n_iter != 0:

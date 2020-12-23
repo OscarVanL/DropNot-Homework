@@ -4,10 +4,10 @@ import shutil
 import os
 import hashlib
 
-from utils.FileUtils import FileUtils
+from utils.ClientFileUtils import FileUtils
 
 
-class TestFileUtils(unittest.TestCase):
+class TestClientFileUtils(unittest.TestCase):
     def setUp(self):
         # Create test dir
         self.test_dir = tempfile.mkdtemp()
