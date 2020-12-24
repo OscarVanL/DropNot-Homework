@@ -8,6 +8,7 @@ import filecmp
 from sqlitedict import SqliteDict
 from utils.ServerFileUtils import ServerFileUtils
 
+
 class TestServerFileUtils(unittest.TestCase):
 
     def setUp(self):
@@ -29,7 +30,7 @@ class TestServerFileUtils(unittest.TestCase):
         new_folder_test = os.path.join(self.test_dir, 'test1', 'test1')
         ServerFileUtils.new_folder(self.meta_db, new_folder_test, meta_str)
         self.assertTrue(os.path.exists(new_folder_test))
-        self.assertEqual({'test': 'value'}, json.loads(self.meta_db[new_folder_test]))
+        self.assertEqual({'test1': 'value1'}, json.loads(self.meta_db[new_folder_test]))
 
     def test_remove_folder(self):
         # Create a mock folder & metadata to remove
