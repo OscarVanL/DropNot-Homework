@@ -6,6 +6,13 @@ import json
 class DirectoryListener:
 
     def __init__(self, dir, change_callback, file_db, folder_db):
+        """
+        Initialise the DirectoryListener, which is used to detect changes in the client sync folder
+        :param dir: Directory to scan for changes
+        :param change_callback: Callback function when change is detected
+        :param file_db: SqliteDict database to store tracked file metadata
+        :param folder_db: SqliteDict database to store tracked folder metadata
+        """
         self.dir = dir
         self.change_callback = change_callback
         self.file_db = file_db
@@ -18,6 +25,11 @@ class DirectoryListener:
 
 
     def scan_directory(self, n_iter=-1):
+        """
+        Scan the directory for new files/folders, deleted files/folders, or file edits
+        :param n_iter: How many times to scan. Leave at default (-1) for continuous operation
+        :return:
+        """
         while n_iter != 0:
             file_meta_new = {}
             folder_meta_new = set()
@@ -42,6 +54,12 @@ class DirectoryListener:
 
 
     def find_diff_folders(self, folders_after: set):
+        """
+        Check for the creation or deletion of folders.
+        Upon detection of a new/deleted folder the change callback is called
+        :param folders_after: Set of folders found after last directory scan
+        :return: None
+        """
         # Check for folder creation and removal
         removed = set(self.folder_db.keys()) - folders_after
         created = folders_after - set(self.folder_db.keys())
@@ -54,6 +72,12 @@ class DirectoryListener:
 
 
     def find_diff_files(self, files_after: dict):
+        """
+        Check for the creation, deletion, or modification of files.
+        Upon detection of a new/edited/deleted file the change callback is called
+        :param files_after: Dictionary of {path: modified} after last directory scan
+        :return: None
+        """
         # Check for file creation and removal
         removed = self.file_db.keys() - files_after.keys()
         created = files_after.keys() - self.file_db.keys()
@@ -74,4 +98,7 @@ class DirectoryListener:
 
 
 class ChangeType(set):
+    """
+    Enum-like object to represent file system change type
+    """
     CreatedFile, DeletedFile, ModifiedFile, CreatedFolder, DeletedFolder = range(0, 5)

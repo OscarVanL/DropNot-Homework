@@ -8,9 +8,14 @@ import logging
 
 
 def initialise(sync_dir):
-    # Todo: Upon start verify the hash_db is set correctly for each item within the meta_db?
+    """
+    Application Factory method for Flask
+    :param sync_dir: Directory to sync files to
+    :return: Flask app
+    """
     app = Flask(__name__)
-    #logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', filename='server.log', level=logging.INFO)
+
+    logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', filename='server.log', level=logging.INFO)
     # A Key-Value DB table storing MD5 -> Path. This allows us to detect the upload of identical files to save bandwidth
     hash_db = SqliteDict('server_tracker.db', tablename='hashmap', encode=json.dumps, decode=json.loads)
     # A Key-Value DB table storing Path -> Metadata. Metadata is stored as JSON
@@ -19,7 +24,7 @@ def initialise(sync_dir):
     @app.route('/sync/exists/<md5>', methods=['GET'])
     def file_exists_check(md5):
         """
-        Allows client to check whether an exact copy of a file exists on the server before uploading.
+        Allows clients to check whether an exact copy of a file exists on the server before uploading.
         :param md5: md5 of file to check
         :return: 200 if exist, 204 if it doesn't
         """
@@ -49,6 +54,11 @@ def initialise(sync_dir):
 
     @app.route('/sync/<path:path>', methods=['POST'])
     def new_item(path):
+        """
+        Create a new file or folder on the server
+        :param path: Target folder/file path from the route URL
+        :return: 200 success. 400 invalid request. 422 file corrupted in transmission.
+        """
         data = json.loads(request.get_json(silent=False))
 
         target_path = os.path.normpath(os.path.join(sync_dir, path))
@@ -70,6 +80,11 @@ def initialise(sync_dir):
 
     @app.route('/sync/<path:path>', methods=['PUT'])
     def update_item(path):
+        """
+        Update an edited file on the server
+        :param path: Target folder/file path from the route URL
+        :return: 200 success. 400 invalid request. 422 file corrupted in transmission.
+        """
         data = json.loads(request.get_json(silent=False))
 
         target_path = os.path.normpath(os.path.join(sync_dir, path))
@@ -88,6 +103,11 @@ def initialise(sync_dir):
 
     @app.route('/sync/<path:path>', methods=['DELETE'])
     def delete_item(path):
+        """
+        Delete a file on the server
+        :param path: Target folder/file path from the route URL
+        :return: 200 success. 400 invalid request. 422 IO error on server
+        """
         data = request.get_json(silent=False, force=True)
 
         target_path = os.path.normpath(os.path.join(sync_dir, path))

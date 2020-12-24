@@ -2,12 +2,22 @@ import os
 import shutil
 import hashlib
 import base64
-import json
 
 
 class ServerFileUtils:
+    """
+    Utility functions for the server to handle file-related operations
+    """
+
     @staticmethod
     def new_folder(meta_db, target_path, meta):
+        """
+        Create a new folder in the server sync directory
+        :param meta_db: SqliteDict database for tracked file and folder metadata
+        :param target_path: Where to sync files to on the server
+        :param meta: Metadata for the new folder
+        :return: None
+        """
         os.makedirs(target_path, exist_ok=True)
         meta_db[target_path] = meta
         meta_db.commit()
@@ -15,6 +25,12 @@ class ServerFileUtils:
 
     @staticmethod
     def remove_folder(meta_db, target_path):
+        """
+        Remove folder(s) in the server sync directory
+        :param meta_db: SqliteDict database for tracked file and folder metadata
+        :param target_path: Where to sync files to on the server
+        :return: None
+        """
         try:
             meta_db.pop(target_path, None)
             meta_db.commit()
@@ -26,6 +42,14 @@ class ServerFileUtils:
 
     @staticmethod
     def set_file(hash_db, meta_db, target_file, data_dict):
+        """
+        Create or update a file in the server sync directory
+        :param hash_db: SqliteDict database for tracked file MD5 hashes
+        :param meta_db: SqliteDict database for tracked file and folder metadata
+        :param target_file: File path to create on the server
+        :param data_dict: Dictionary containing file binary & metadata
+        :return: None
+        """
         # Ensure folder structure exists
         os.makedirs(os.path.split(target_file)[0], exist_ok=True)
 
@@ -63,16 +87,23 @@ class ServerFileUtils:
 
 
     @staticmethod
-    def remove_file(hash_db, meta_db, target_path):
+    def remove_file(hash_db, meta_db, target_file):
+        """
+        Remove a file in the server sync directory
+        :param hash_db: SqliteDict database for tracked file MD5 hashes
+        :param meta_db: SqliteDict database for tracked file and folder metadata
+        :param target_file: File path to create on the server
+        :return: None
+        """
         try:
             # Remove DB entries for removed file
-            md5 = meta_db[target_path]['md5']
+            md5 = meta_db[target_file]['md5']
             hash_db.pop(md5, None)
-            meta_db.pop(target_path, None)
+            meta_db.pop(target_file, None)
             hash_db.commit()
             meta_db.commit()
             # Remove target file
-            os.remove(target_path)
+            os.remove(target_file)
         except OSError:
             # The file might not be on the server if a remove_folder request was completed earlier
             pass
