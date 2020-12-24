@@ -37,6 +37,7 @@ def initialise(sync_dir):
                 md5_hash.update(file.read())
 
             if md5 == md5_hash.hexdigest():
+                logging.info('File with identical MD5 found on the server:{}'.format(existing_path))
                 return 'Already exists', 200
             else:
                 # If the DB's stored MD5 map does not match the file's actual MD5
@@ -65,15 +66,19 @@ def initialise(sync_dir):
         try:
             if data['type'] == 'file':
                 ServerFileUtils.set_file(hash_db, meta_db, target_path, data)
+                logging.info('File created:{}'.format(path))
             elif data['type'] == 'folder':
                 ServerFileUtils.new_folder(meta_db, target_path, data)
+                logging.info('Folder created:{}'.format(path))
             else:
                 return 'Invalid data type received', 400
         except KeyError as e:
             return str(e), 400
         except IOError as e:
             # IOError raised if metadata MD5 does not match received binary content
-            print(e)
+            logging.warning('IOError when creating new file or folder.'
+                            'This is thrown if the MD5 checksum does not match a file. '
+                            'This may be because of corruption during transmission')
             return str(e), 422
         return 'OK', 200
 
@@ -91,12 +96,15 @@ def initialise(sync_dir):
         try:
             if data['type'] == 'file':
                 ServerFileUtils.set_file(hash_db, meta_db, target_path, data)
+                logging.info('File updated:{}'.format(path))
             else:
                 return 'Invalid data type received', 400
         except KeyError as e:
             return str(e), 400
         except IOError as e:
-            print(e)
+            logging.warning('IOError when creating editing a file.'
+                            'This is thrown if the MD5 checksum does not match a file. '
+                            'This may be because of corruption during transmission')
             return e, 422
         return 'OK', 200
 
@@ -114,12 +122,14 @@ def initialise(sync_dir):
         try:
             if data['type'] == 'file':
                 ServerFileUtils.remove_file(hash_db, meta_db, target_path)
+                logging.info('File removed:{}'.format(path))
             elif data['type'] == 'folder':
                 ServerFileUtils.remove_folder(meta_db, target_path)
+                logging.info('Folder removed:{}'.format(path))
             else:
                 return 'Invalid data type received', 400
         except IOError as e:
-            print(e)
+            logging.warning('IOError when deleting a file or folder.')
             return str(e), 422
 
         return 'OK', 200
