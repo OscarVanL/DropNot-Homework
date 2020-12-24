@@ -75,9 +75,11 @@ class DropNotClient(Thread):
             logging.info('Folder synced to remote:{}'.format(rel_path))
             folder_encoding.sync = True
             self.folder_db[path] = repr(folder_encoding)
+            self.folder_db.commit()
         elif resp.status_code == 400 or resp.status_code == 400:
             logging.error('Folder sync unsuccessful{}'.format(rel_path))
             self.folder_db[path] = repr(folder_encoding)
+            self.folder_db.commit()
         else:
             logging.critical('Unsupported response status code from remote:{}'.format(resp.status_code))
             raise NotImplementedError('Unsupported resp status code:', resp.status_code)
@@ -94,6 +96,7 @@ class DropNotClient(Thread):
         if resp.status_code == 200:
             logging.info('Folder removed from remote:{}'.format(rel_path))
             self.folder_db.pop(path, None)
+            self.folder_db.commit()
         elif resp.status_code == 400 or resp.status_code == 422:
             logging.error('Folder removal failed on remote:{}'.format(rel_path))
             # todo: handle this?
@@ -113,6 +116,7 @@ class DropNotClient(Thread):
         if resp.status_code == 200:
             logging.info('File removed from remote:{}'.format(rel_path))
             self.file_db.pop(path, None)
+            self.file_db.commit()
         elif resp.status_code == 400 or resp.status_code == 400:
             logging.error('File removal failed on remote:{}'.format(rel_path))
             # todo: handle this?
@@ -143,9 +147,11 @@ class DropNotClient(Thread):
             logging.info('File creation synced to remote:{}'.format(rel_path))
             file_metadata.sync = True
             self.file_db[path] = repr(file_metadata)
+            self.file_db.commit()
         elif resp.status_code == 400 or resp.status_code == 422:
             logging.error('File creation sync unsuccessful:{}'.format(rel_path))
             self.file_db[path] = repr(file_metadata)
+            self.file_db.commit()
             # todo: handle this?
         else:
             logging.critical('Unsupported response status code from remote:{}'.format(resp.status_code))
@@ -174,9 +180,11 @@ class DropNotClient(Thread):
             logging.info('File modification synced to remote:{}'.format(rel_path))
             file_metadata.sync = True
             self.file_db[path] = repr(file_metadata)
+            self.file_db.commit()
         elif resp.status_code == 400 or resp.status_code == 422:
             logging.info('File modification sync unsuccessful:{}'.format(rel_path))
             self.file_db[path] = repr(file_metadata)
+            self.file_db.commit()
             # todo: handle this?
         else:
             logging.critical('Unsupported response status code from remote:{}'.format(resp.status_code))

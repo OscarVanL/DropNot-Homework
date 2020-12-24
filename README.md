@@ -16,13 +16,13 @@ This solution completes tasks 1.1 and 1.2, and also completes bonus task 1.
 
 5. `pip install -r requirements.txt`
 
-## Launch Client
-
-`python main.py --client <DIR-TO-SYNC>`
-
 ## Launch Server
 
 `python main.py --server <SYNC-TARGET-DIR>`
+
+## Launch Client
+
+`python main.py --client <DIR-TO-SYNC>`
 
 ## Run Tests
 
