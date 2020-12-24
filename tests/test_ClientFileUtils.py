@@ -4,6 +4,7 @@ import shutil
 import os
 import hashlib
 
+from utils.Metadata import FileEncoding
 from utils.ClientFileUtils import FileUtils
 
 
@@ -31,14 +32,31 @@ class TestClientFileUtils(unittest.TestCase):
         # Remove temp dir
         shutil.rmtree(self.test_dir)
 
+    def test_get_file_metadata(self):
+        meta = FileUtils.get_file_metadata(self.test_file, self.test_file)
+        self.assertEqual(self.test_file, meta.path)
+        self.assertEqual(self.expected_file_modified, meta.modified)
+        self.assertEqual(self.expected_size, meta.size)
+        self.assertEqual(self.expected_md5, meta.md5)
+        self.assertEqual(False, meta.sync)
+
+    def test_get_metadata(self):
+        input_encoding = FileEncoding(b'abc123', self.test_file, 12345.00, 'ABC123AA00', 128)
+        meta = FileUtils.get_metadata(input_encoding)
+        self.assertEqual(self.test_file, meta.path)
+        self.assertEqual(12345.00, meta.modified)
+        self.assertEqual('ABC123AA00', meta.md5)
+        self.assertEqual(128, meta.size)
+        self.assertEqual(False, meta.sync)
+
     # Verify all fields are set correctly for file encodings
     def test_get_file_encoding(self):
-        metadata = FileUtils.get_file_encoding(self.test_file, self.test_file)
-        self.assertEqual(b'abc123', metadata.bin)
-        self.assertEqual(self.test_file, metadata.path)
-        self.assertEqual(self.expected_file_modified, metadata.modified)
-        self.assertEqual(self.expected_size, metadata.size)
-        self.assertEqual(self.expected_md5, metadata.md5)
+        encoding = FileUtils.get_file_encoding(self.test_file, self.test_file)
+        self.assertEqual(b'abc123', encoding.bin)
+        self.assertEqual(self.test_file, encoding.path)
+        self.assertEqual(self.expected_file_modified, encoding.modified)
+        self.assertEqual(self.expected_size, encoding.size)
+        self.assertEqual(self.expected_md5, encoding.md5)
 
     # Verify all fields are set correctly for folder encodings
     def test_get_folder_encoding(self):
