@@ -49,7 +49,6 @@ class TestDirectoryListener(unittest.TestCase):
             file.write('Hello')
         listener.scan_directory(n_iter=1)
         callback.assert_called_with(ChangeType.CreatedFile, new_file)
-        print("CreatedFile pass")
         self.file_db[new_file] = json.dumps({'modified': 12345})
 
         # Test ModifiedFile callback called when file is modified
@@ -58,7 +57,6 @@ class TestDirectoryListener(unittest.TestCase):
             file.write('World')
         listener.scan_directory(n_iter=1)
         callback.assert_called_with(ChangeType.ModifiedFile, new_file)
-        print("ModifiedFile pass")
 
         # Test DeletedFile callback called when file is deleted
         listener = DirectoryListener(self.test_dir, callback, self.file_db, self.folder_db)
