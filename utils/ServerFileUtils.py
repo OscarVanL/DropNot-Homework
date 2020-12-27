@@ -107,3 +107,6 @@ class ServerFileUtils:
         except OSError:
             # The file might not be on the server if a remove_folder request was completed earlier
             pass
+        except KeyError:
+            # Handle case where file for deletion is missing from MD5 hash DB or metadata DB.
+            pass

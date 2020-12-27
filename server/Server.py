@@ -7,19 +7,24 @@ import hashlib
 import logging
 
 
-def initialise(sync_dir):
+def initialise(sync_dir, hash_db=None, meta_db=None):
     """
     Application Factory method for Flask
     :param sync_dir: Directory to sync files to
+    :param hash_db: (optional): Use non-default hash DB (used for Unit testing)
+    :param meta_db: (optional): Use non-default metadata DB (used for Unit testing)
     :return: Flask app
     """
     app = Flask(__name__)
 
     logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', filename='server.log', level=logging.INFO)
-    # A Key-Value DB table storing MD5 -> Path. This allows us to detect the upload of identical files to save bandwidth
-    hash_db = SqliteDict('server_tracker.db', tablename='hashmap', encode=json.dumps, decode=json.loads)
-    # A Key-Value DB table storing Path -> Metadata. Metadata is stored as JSON
-    meta_db = SqliteDict('server_tracker.db', tablename='metadata', encode=json.dumps, decode=json.loads)
+
+    if hash_db is None:
+        # A Key-Value DB table storing MD5 -> Path. This allows us to detect the upload of identical files to save bandwidth
+        hash_db = SqliteDict('server_tracker.db', tablename='hashmap', encode=json.dumps, decode=json.loads)
+    if meta_db is None:
+        # A Key-Value DB table storing Path -> Metadata. Metadata is stored as JSON
+        meta_db = SqliteDict('server_tracker.db', tablename='metadata', encode=json.dumps, decode=json.loads)
 
     @app.route('/sync/exists/<md5>', methods=['GET'])
     def file_exists_check(md5):
@@ -52,7 +57,6 @@ def initialise(sync_dir):
         except FileNotFoundError:
             return 'Does not exist', 204
 
-
     @app.route('/sync/<path:path>', methods=['POST'])
     def new_item(path):
         """
@@ -76,12 +80,11 @@ def initialise(sync_dir):
             return str(e), 400
         except IOError as e:
             # IOError raised if metadata MD5 does not match received binary content
-            logging.warning('IOError when creating new file or folder.'
+            logging.warning('IOError when creating new file or folder. '
                             'This is thrown if the MD5 checksum does not match a file. '
                             'This may be because of corruption during transmission')
             return str(e), 422
         return 'OK', 200
-
 
     @app.route('/sync/<path:path>', methods=['PUT'])
     def update_item(path):
@@ -91,7 +94,6 @@ def initialise(sync_dir):
         :return: 200 success. 400 invalid request. 422 file corrupted in transmission.
         """
         data = json.loads(request.get_json(silent=False))
-
         target_path = os.path.normpath(os.path.join(sync_dir, path))
         try:
             if data['type'] == 'file':
@@ -105,9 +107,8 @@ def initialise(sync_dir):
             logging.warning('IOError when creating editing a file.'
                             'This is thrown if the MD5 checksum does not match a file. '
                             'This may be because of corruption during transmission')
-            return e, 422
+            return str(e), 422
         return 'OK', 200
-
 
     @app.route('/sync/<path:path>', methods=['DELETE'])
     def delete_item(path):
@@ -117,8 +118,8 @@ def initialise(sync_dir):
         :return: 200 success. 400 invalid request. 422 IO error on server
         """
         data = request.get_json(silent=False, force=True)
-
         target_path = os.path.normpath(os.path.join(sync_dir, path))
+
         try:
             if data['type'] == 'file':
                 ServerFileUtils.remove_file(hash_db, meta_db, target_path)
