@@ -10,15 +10,17 @@ import logging
 
 class DropNotClient(Thread):
 
-    def __init__(self, sync_dir, target):
+    def __init__(self, sync_dir, target, port):
         """
         Initialise the DropNot Client
         :param sync_dir: Directory to synchronise on the client machine
         :param target: Target DropNot Server IP/domain
+        :param port: Port to access DropNot Server on
         """
         logging.basicConfig(format='%(asctime)s %(levelname)s %(message)s', filename='client.log', level=logging.INFO)
         self.sync_dir = sync_dir
         self.target = target
+        self.port = port
         # Our key-value stores for client metadata
         self.file_db = SqliteDict('client_tracker.db', tablename='files', encode=json.dumps, decode=json.loads)
         self.folder_db = SqliteDict('client_tracker.db', tablename='folders', encode=json.dumps, decode=json.loads)
@@ -69,7 +71,7 @@ class DropNotClient(Thread):
         :return: None
         """
         folder_encoding = FileUtils.get_folder_encoding(path, rel_path)
-        resp = requests.post('http://{}:5000/sync/{}'.format(self.target, rel_path),
+        resp = requests.post('http://{}:{}/sync/{}'.format(self.target, self.port, rel_path),
                              json=repr(folder_encoding))
         if resp.status_code == 200:
             logging.info('Folder synced to remote:{}'.format(rel_path))
@@ -91,7 +93,7 @@ class DropNotClient(Thread):
         :param rel_path: Relative path from sync directory
         :return: None
         """
-        resp = requests.delete('http://{}:5000/sync/{}'.format(self.target, rel_path),
+        resp = requests.delete('http://{}:{}/sync/{}'.format(self.target, self.port, rel_path),
                                json={"type": "folder"})
         if resp.status_code == 200:
             logging.info('Folder removed from remote:{}'.format(rel_path))
@@ -111,7 +113,7 @@ class DropNotClient(Thread):
         :param rel_path: Relative path from sync directory
         :return: None
         """
-        resp = requests.delete('http://{}:5000/sync/{}'.format(self.target, rel_path),
+        resp = requests.delete('http://{}:{}/sync/{}'.format(self.target, self.port, rel_path),
                                json={"type": "file"})
         if resp.status_code == 200:
             logging.info('File removed from remote:{}'.format(rel_path))
@@ -136,11 +138,11 @@ class DropNotClient(Thread):
 
         if self.check_file_exists(file_metadata.md5):
             # Only send metadata, not the binary
-            resp = requests.post('http://{}:5000/sync/{}'.format(self.target, rel_path),
+            resp = requests.post('http://{}:{}/sync/{}'.format(self.target, self.port, rel_path),
                                  json=repr(file_metadata))
         else:
             # Send metadata and binary
-            resp = requests.post('http://{}:5000/sync/{}'.format(self.target, rel_path),
+            resp = requests.post('http://{}:{}/sync/{}'.format(self.target, self.port, rel_path),
                                  json=repr(file_encoding))
 
         if resp.status_code == 200:
@@ -169,11 +171,11 @@ class DropNotClient(Thread):
 
         if self.check_file_exists(file_metadata.md5):
             # Only send metadata, not the binary
-            resp = requests.put('http://{}:5000/sync/{}'.format(self.target, rel_path),
+            resp = requests.put('http://{}:{}/sync/{}'.format(self.target, self.port, rel_path),
                                 json=repr(file_metadata))
         else:
             # Send metadata and binary
-            resp = requests.put('http://{}:5000/sync/{}'.format(self.target, rel_path),
+            resp = requests.put('http://{}:{}/sync/{}'.format(self.target, self.port, rel_path),
                                 json=repr(file_encoding))
 
         if resp.status_code == 200:
@@ -196,7 +198,7 @@ class DropNotClient(Thread):
         :param md5: md5 hash
         :return: True if an identical file exists, False otherwise
         """
-        resp = requests.get('http://{}:5000/sync/exists/{}'.format(self.target, md5))
+        resp = requests.get('http://{}:{}/sync/exists/{}'.format(self.target, self.port, md5))
         if resp.status_code == 200:
             return True
         else:
