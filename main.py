@@ -26,7 +26,7 @@ def launch(client, target, server, port):
         server_dir = os.path.abspath(server)  # Convert relative paths to absolute path
         print("Starting Server, synchronising files to:", server_dir)
         server = Server.initialise(server_dir)
-        server = Thread(target=server.run, kwargs={'port': port})
+        server = Thread(target=server.run, kwargs={'host': '0.0.0.0', 'port': port})
         server.daemon = True
         server.start()
 
