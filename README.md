@@ -1,10 +1,8 @@
 # Pexip DropNot Homework
 
-## About
-
 This solution completes tasks 1.1 and 1.2, and also completes bonus task 1.
 
-## Setup
+## Setup (Normal)
 
 1. `git clone https://github.com/OscarVanL/Pexip-Dropbox-Homework`
 
@@ -16,32 +14,40 @@ This solution completes tasks 1.1 and 1.2, and also completes bonus task 1.
 
 5. `pip install -r requirements.txt`
 
-## Launch Server
+Launch Client: `python main.py --client <DIR-TO-SYNC>`
 
-`python main.py --server <SYNC-TARGET-DIR>`
+Launch Server: `python main.py --server <SYNC-TARGET-DIR>`
 
-## Launch Client
+## Setup (Dockerised Server)
 
-`python main.py --client <DIR-TO-SYNC>`
+1. `git clone https://github.com/OscarVanL/Pexip-Dropbox-Homework`
 
-## Run Tests
+2. `cd Pexip-Dropbox-Homework`
+
+3. `mkdir sync`
+
+4. `docker build -t dropnot-server -f Dockerfile .`
+
+5. `docker run -d -p 5000:5000 -v $PWD:/dropnot --restart=always --name dropnot-server dropnot-server`
+
+## Run Unit Tests
 
 `python -m unittest discover tests`
 
+## Improvements
 
-# Improvements
+* To detect file changes, native OS libraries like the win32 API could be used. However, this adds complexity for multi-OS compatibility.
 
-* To detect changes, native OS libraries like the win32 API could be used. However, this adds complexity for multi-OS compatibility.
-
-* My solution rebuilds only the 'modified' file metadata on the server. Not all metadata is transferred.
+* Not all file metadata is preserved, just the 'modified' time.
 
 * Base64 is used for the file binary encoding, however using BSON or Google Protocol Buffers would result in efficiency gains.
 
-* File transfers happen sequentially. A few simultaneous transfers could speed up synchronisation.
+* File transfers happen sequentially. Simultaneous transfers could speed up synchronisation.
 
-* I am using Flask in development mode, this isn't suitable for production.
+* I am using Flask in development mode (unsuitable for production).
 
 * If a file or folder is renamed, the directory listener isn't smart enough to know this, so it will be processed as a 'deletion' followed by a 'creation'.
 
 * There's **no encryption**.
 
+* Bonus task 2 is not implemented. 
