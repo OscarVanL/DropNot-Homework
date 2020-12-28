@@ -1,12 +1,12 @@
-# Pexip DropNot Homework
+# DropNot Homework
 
 This solution completes tasks 1.1 and 1.2, and also completes bonus task 1.
 
 ## Setup (Normal)
 
-1. `git clone https://github.com/OscarVanL/Pexip-Dropbox-Homework`
+1. `git clone https://github.com/OscarVanL/DropNot-Homework`
 
-2. `cd Pexip-Dropbox-Homework`
+2. `cd DropNot-Homework`
 
 3. `conda create --name DropNot python=3.8`
 
@@ -20,9 +20,9 @@ Launch Server: `python main.py --server <SYNC-TARGET-DIR>`
 
 ## Setup (Dockerised Server)
 
-1. `git clone https://github.com/OscarVanL/Pexip-Dropbox-Homework`
+1. `git clone https://github.com/OscarVanL/DropNot-Homework`
 
-2. `cd Pexip-Dropbox-Homework`
+2. `cd DropNot-Homework`
 
 3. `mkdir sync`
 

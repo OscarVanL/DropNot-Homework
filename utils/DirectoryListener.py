@@ -23,7 +23,6 @@ class DirectoryListener:
             folder_db[dir] = 'sync_dir'
             folder_db.commit()
 
-
     def scan_directory(self, n_iter=-1):
         """
         Scan the directory for new files/folders, deleted files/folders, or file edits
@@ -52,7 +51,6 @@ class DirectoryListener:
             time.sleep(5)
             n_iter -= 1
 
-
     def find_diff_folders(self, folders_after: set):
         """
         Check for the creation or deletion of folders.
@@ -69,7 +67,6 @@ class DirectoryListener:
 
         for folder in created:
             self.change_callback(ChangeType.CreatedFolder, folder)
-
 
     def find_diff_files(self, files_after: dict):
         """

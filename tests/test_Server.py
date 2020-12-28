@@ -141,4 +141,3 @@ class TestServer(unittest.TestCase):
         file_json = {'type': 'file'}
         resp = self.server.delete('/sync/example/path/nonexistent/file.txt', json=file_json)
         self.assertEqual(200, resp.status_code)
-
